@@ -10,21 +10,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Heart, Home, LogIn, Search } from "lucide-react";
+import { Heart, Home, Search } from "lucide-react";
 import Image from "next/image";
 
 export default function SearchRental() {
   const [city, setCity] = useState("");
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [sortBy, setSortBy] = useState("newest");
+  const [sortBy] = useState("newest");
 
   // Mock data for demonstration
   const rentals = [
