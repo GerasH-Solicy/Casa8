@@ -3,12 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
@@ -20,13 +15,28 @@ import {
 import { Label } from "@/components/ui/label";
 import { Upload } from "lucide-react";
 import SearchRental from "@/components/shared/searchRental";
-import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
+import {
+  SignedIn,
+  SignedOut,
+  SignInButton,
+  useAuth,
+  UserButton,
+} from "@clerk/nextjs";
+import { useEffect } from "react";
 
 export default function Casa8Interface() {
+  const { isSignedIn } = useAuth();
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     console.log("Form submitted");
   };
+
+  useEffect(() => {
+    if (!isSignedIn) {
+      window.location.href =
+        "https://fleet-doberman-10.accounts.dev/sign-in?redirect_url=http%3A%2F%2Flocalhost%3A3000%2F";
+    }
+  }, [isSignedIn]);
 
   return (
     <div className="container mx-auto p-4">
