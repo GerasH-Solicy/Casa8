@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -12,61 +11,25 @@ import {
 } from "@/components/ui/card";
 import { Heart, Home, Search } from "lucide-react";
 import Image from "next/image";
+import { useUser } from "@clerk/nextjs";
+import { useApartament } from "@/hooks/useApartament";
+import { useEffect, useState } from "react";
 
 export default function SearchRental() {
-  const [city, setCity] = useState("");
-  const [sortBy] = useState("newest");
+  const { user } = useUser();
+  const [rentals, setRentals] = useState<any[]>([]);
+  const { getAllApartaments } = useApartament();
 
-  // Mock data for demonstration
-  const rentals = [
-    {
-      id: 1,
-      title: "Cozy Apartment",
-      address: "123 Main St",
-      price: 1200,
-      bedrooms: 2,
-      bathrooms: 1,
-      sqft: 800,
-    },
-    {
-      id: 2,
-      title: "Spacious House",
-      address: "456 Elm St",
-      price: 2000,
-      bedrooms: 4,
-      bathrooms: 2.5,
-      sqft: 2200,
-    },
-    {
-      id: 3,
-      title: "Modern Loft",
-      address: "789 Oak St",
-      price: 1500,
-      bedrooms: 1,
-      bathrooms: 1,
-      sqft: 1000,
-    },
-    {
-      id: 4,
-      title: "Studio Apartment",
-      address: "101 Pine St",
-      price: 900,
-      bedrooms: 0,
-      bathrooms: 1,
-      sqft: 500,
-    },
-  ];
-
-  const sortedRentals = [...rentals].sort((a, b) => {
-    switch (sortBy) {
-      case "price-asc":
-        return a.price - b.price;
-      case "price-desc":
-        return b.price - a.price;
-      default:
-        return 0;
+  useEffect(() => {
+    async function fetcher() {
+      const res = await getAllApartaments();
+      console.log("res ====", res);
+      setRentals(res.apartments);
     }
-  });
+    fetcher();
+  }, [user]);
+
+  const sortedRentals = rentals;
 
   return (
     <div className="container mx-auto p-4">
@@ -76,11 +39,7 @@ export default function SearchRental() {
         </CardHeader>
         <CardContent>
           <div className="flex space-x-2">
-            <Input
-              placeholder="Enter city"
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-            />
+            <Input placeholder="Enter city" />
             <Button>
               <Search className="mr-2 h-4 w-4" /> Search
             </Button>
@@ -89,7 +48,7 @@ export default function SearchRental() {
       </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
-        {sortedRentals.map((rental) => (
+        {rentals.map((rental) => (
           <Card key={rental.id}>
             <div className="flex">
               <div className="flex-1">
@@ -98,7 +57,7 @@ export default function SearchRental() {
                 </CardHeader>
                 <CardContent>
                   <p>{rental.address}</p>
-                  <p className="font-bold">${rental.price}/month</p>
+                  <p className="font-bold">${rental.monthlyRent}/month</p>
                   <p>
                     {rental.bedrooms} bed, {rental.bathrooms} bath,{" "}
                     {rental.sqft} sqft

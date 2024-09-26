@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,22 +22,74 @@ import {
   SignInButton,
   useAuth,
   UserButton,
+  useUser,
 } from "@clerk/nextjs";
-import { useEffect } from "react";
+import axios from "axios";
+import { useApartament } from "@/hooks/useApartament";
 
 export default function Casa8Interface() {
-  const { isSignedIn } = useAuth();
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    console.log("Form submitted");
+  const { createApartament } = useApartament();
+  const { user } = useUser();
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    address: "",
+    city: "",
+    monthlyRent: "",
+    propertyType: "",
+    bedrooms: "",
+    bathrooms: "",
+    squareFootage: "",
+    images: [], // For file uploads
+    userEmail: "", // Will capture from the signed-in user
+  });
+
+  const [errors, setErrors] = useState<any>(null);
+
+  const handleInputChange = (e: any) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
   };
 
-  useEffect(() => {
-    if (!isSignedIn) {
-      window.location.href =
-        "https://fleet-doberman-10.accounts.dev/sign-in?redirect_url=http%3A%2F%2Flocalhost%3A3000%2F";
+  const handleFileChange = (e: any) => {
+    setFormData({
+      ...formData,
+      images: Array.from(e.target.files),
+    });
+  };
+
+  const handleSubmit = async (e: any) => {
+    e.preventDefault();
+
+    try {
+      // const formDataToSend = new FormData();
+      // Object.keys(formData).forEach((key) => {
+      //   if (key === "images") {
+      //     formData[key].forEach((image: any) =>
+      //       formDataToSend.append("images", image)
+      //     );
+      //   } else {
+      //     formDataToSend.append(key, formData[key]);
+      //   }
+      // });
+
+      const response = await createApartament({
+        ...formData,
+        userEmail: user?.emailAddresses[0].emailAddress,
+      });
+
+      if (response.success) {
+        alert("Rental posted successfully");
+      } else {
+        alert("Failed to post rental");
+      }
+    } catch (err: any) {
+      setErrors(err.message || "An error occurred");
     }
-  }, [isSignedIn]);
+  };
 
   return (
     <div className="container mx-auto p-4">
@@ -57,18 +110,20 @@ export default function Casa8Interface() {
           <TabsTrigger value="search">Search Rentals</TabsTrigger>
           <TabsTrigger value="post">Post a Rental</TabsTrigger>
         </TabsList>
-        <TabsContent value="search">{/* Search content here */}</TabsContent>
         <TabsContent value="post">
           <Card>
             <CardHeader>
               <CardTitle>Post a New Rental</CardTitle>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form className="space-y-4" onSubmit={handleSubmit}>
                 <div className="space-y-2">
                   <Label htmlFor="title">Property Title</Label>
                   <Input
                     id="title"
+                    name="title"
+                    value={formData.title}
+                    onChange={handleInputChange}
                     placeholder="e.g., Cozy Downtown Apartment"
                     required
                   />
@@ -77,6 +132,9 @@ export default function Casa8Interface() {
                   <Label htmlFor="description">Description</Label>
                   <Textarea
                     id="description"
+                    name="description"
+                    value={formData.description}
+                    onChange={handleInputChange}
                     placeholder="Describe your property..."
                     required
                   />
@@ -84,34 +142,59 @@ export default function Casa8Interface() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="address">Address</Label>
-                    <Input id="address" placeholder="Street address" required />
+                    <Input
+                      id="address"
+                      name="address"
+                      value={formData.address}
+                      onChange={handleInputChange}
+                      placeholder="Street address"
+                      required
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="city">City</Label>
-                    <Input id="city" placeholder="City" required />
+                    <Input
+                      id="city"
+                      name="city"
+                      value={formData.city}
+                      onChange={handleInputChange}
+                      placeholder="City"
+                      required
+                    />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="price">Monthly Rent</Label>
+                    <Label htmlFor="monthlyRent">Monthly Rent</Label>
                     <Input
-                      id="price"
+                      id="monthlyRent"
+                      name="monthlyRent"
                       type="number"
+                      value={formData.monthlyRent}
+                      onChange={handleInputChange}
                       placeholder="Price per month"
                       required
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="propertyType">Property Type</Label>
-                    <Select required>
+                    <Select
+                      name="propertyType"
+                      value={formData.propertyType}
+                      onValueChange={(value) =>
+                        setFormData({ ...formData, propertyType: value })
+                      }
+                      required
+                    >
                       <SelectTrigger id="propertyType">
                         <SelectValue placeholder="Select type" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="apartment">Apartment</SelectItem>
-                        <SelectItem value="house">House</SelectItem>
-                        <SelectItem value="condo">Condo</SelectItem>
-                        <SelectItem value="townhouse">Townhouse</SelectItem>
+                        <SelectItem value="Apartment">Apartment</SelectItem>
+                        <SelectItem value="House">House</SelectItem>
+                        <SelectItem value="Loft">Loft</SelectItem>
+                        <SelectItem value="Studio">Studio</SelectItem>
+                        <SelectItem value="Townhouse">Townhouse</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -121,7 +204,10 @@ export default function Casa8Interface() {
                     <Label htmlFor="bedrooms">Bedrooms</Label>
                     <Input
                       id="bedrooms"
+                      name="bedrooms"
                       type="number"
+                      value={formData.bedrooms}
+                      onChange={handleInputChange}
                       placeholder="Number of bedrooms"
                       required
                     />
@@ -130,16 +216,22 @@ export default function Casa8Interface() {
                     <Label htmlFor="bathrooms">Bathrooms</Label>
                     <Input
                       id="bathrooms"
+                      name="bathrooms"
                       type="number"
+                      value={formData.bathrooms}
+                      onChange={handleInputChange}
                       placeholder="Number of bathrooms"
                       required
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="sqft">Square Footage</Label>
+                    <Label htmlFor="squareFootage">Square Footage</Label>
                     <Input
-                      id="sqft"
+                      id="squareFootage"
+                      name="squareFootage"
                       type="number"
+                      value={formData.squareFootage}
+                      onChange={handleInputChange}
                       placeholder="Total sq ft"
                       required
                     />
@@ -164,10 +256,12 @@ export default function Casa8Interface() {
                       </div>
                       <Input
                         id="images"
+                        name="images"
                         type="file"
                         className="hidden"
                         multiple
                         accept="image/*"
+                        onChange={handleFileChange}
                       />
                     </label>
                   </div>
@@ -175,6 +269,7 @@ export default function Casa8Interface() {
                 <Button type="submit" className="w-full">
                   Post Rental
                 </Button>
+                {errors && <p className="text-red-500">{errors}</p>}
               </form>
             </CardContent>
           </Card>
