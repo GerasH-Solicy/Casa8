@@ -4,8 +4,6 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogFooter,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { useAuth } from "@clerk/nextjs";
 import { Heart } from "lucide-react";

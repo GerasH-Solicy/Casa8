@@ -7,8 +7,6 @@ import {
   Bath,
   Square,
   CalendarDays,
-  ChevronLeft,
-  ChevronRight,
   DollarSign,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -35,17 +33,14 @@ interface ApartmentProps {
 export default function Apartment({ id }: ApartmentProps) {
   const [rental, setRental] = useState<any | null>(null);
   const { user } = useUser();
-  const [loading, setLoading] = useState<boolean>(false);
   const [disableLike, setDisableLike] = useState<boolean>();
   const { getApartamentById, toogleLikeApartament } = useApartament();
 
   const fetchAppartment = async () => {
-    setLoading(true);
     const res = await getApartamentById(
       id,
       user?.emailAddresses[0].emailAddress ?? ""
     );
-    setLoading(false);
     setRental(res.apartment);
   };
 

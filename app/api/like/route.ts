@@ -26,13 +26,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, newUser });
     }
 
-    let updatedUser = null;
     if (user?.likedApartments?.includes(body.apartmentId)) {
-      updatedUser = await User.findByIdAndUpdate(user._id, {
+      await User.findByIdAndUpdate(user._id, {
         $pull: { likedApartments: body.apartmentId },
       });
     } else {
-      updatedUser = await User.findByIdAndUpdate(user._id, {
+      await User.findByIdAndUpdate(user._id, {
         likedApartments: [...user.likedApartments, body.apartmentId],
       });
     }

@@ -9,8 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Heart, HeartPulse, Home, Search } from "lucide-react";
-import Image from "next/image";
+import { Home, Search } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
 import { useApartament } from "@/hooks/useApartament";
 import { useEffect, useState } from "react";

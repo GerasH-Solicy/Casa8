@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({ success: true, apartments });
 }
 
-export async function POST(request: NextRequest, context: any) {
+export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
     const files = formData.getAll("images") as File[];
