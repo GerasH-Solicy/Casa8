@@ -47,11 +47,24 @@ const apartmentSchema = new mongoose.Schema({
   },
   userEmail: {
     type: String,
-    required: true
+    required: true,
+  },
+  images: {
+    type: Array<String>,
+    default: [],
+  },
+  available: {
+    type: Date,
+    required: false,
+  },
+  amenities: {
+    type: Array<String>,
+    default: [],
   },
 });
 
 // Check if the model already exists
-const Apartment = mongoose.models.Apartment || mongoose.model("Apartment", apartmentSchema);
+const Apartment =
+  mongoose.models.Apartment || mongoose.model("Apartment", apartmentSchema);
 
 export default Apartment;
