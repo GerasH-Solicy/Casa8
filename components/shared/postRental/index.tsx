@@ -20,13 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 import LoginRequired from "../loginRequired";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useRouter } from "next/navigation";
-
-const amenities = [
-  { id: "Parking", label: "Parking" },
-  { id: "Gym", label: "Gym" },
-  { id: "Pool", label: "Pool" },
-  { id: "Pet-friendly", label: "Pet-friendly" },
-];
+import { Amenities } from "@/lib/constants";
 
 export default function PostRental() {
   const { createApartament } = useApartament();
@@ -267,7 +261,7 @@ export default function PostRental() {
             <div className="space-y-2">
               <Label>Amenities</Label>
               <div className="grid grid-cols-2 gap-2">
-                {amenities.map((amenity) => (
+                {Amenities.map((amenity) => (
                   <div key={amenity.id} className="flex items-center space-x-2">
                     <Checkbox
                       id={amenity.id}
@@ -318,7 +312,7 @@ export default function PostRental() {
                 formData.images.map((image: any, index: number) => (
                   <div key={index} className="relative w-24 h-24">
                     <img
-                      src={URL.createObjectURL(image)} // Generate a preview URL for each image
+                      src={URL.createObjectURL(image)}
                       alt={`Preview ${index + 1}`}
                       className="object-cover w-full h-full rounded-lg"
                     />

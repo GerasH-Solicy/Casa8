@@ -138,7 +138,7 @@ export default function Apartment({ id }: ApartmentProps) {
           <CalendarDays className="w-5 h-5 mr-2" />
           <span className="text-sm">
             Available from:{" "}
-            {rental?.available.split("T")[0]}
+            {rental?.available?.split("T")[0]}
           </span>
         </div>
       </CardContent>

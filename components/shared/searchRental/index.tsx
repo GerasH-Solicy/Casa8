@@ -22,6 +22,7 @@ import ApartmentFilter from "../filter";
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import LikeButton from "../likeButton";
+import ApartmentCard from "../apartmentCard";
 
 export default function SearchRental() {
   const { user } = useUser();
@@ -100,47 +101,7 @@ export default function SearchRental() {
           </div>
         ) : (
           rentals.map((rental) => (
-            <Card key={rental.id}>
-              <div className="flex">
-                <div className="flex-1">
-                  <CardHeader>
-                    <CardTitle>{rental.title}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p>{rental.address}</p>
-                    <p className="font-bold">${rental.monthlyRent}/month</p>
-                    <p>
-                      {rental.bedrooms} bed, {rental.bathrooms} bath,{" "}
-                      {rental.sqft} sqft
-                    </p>
-                  </CardContent>
-                  <CardFooter className="flex justify-between">
-                    <Link href={`/apartment/${rental._id}`}>
-                      <Button variant="outline">
-                        <Home className="mr-2 h-4 w-4" /> View
-                      </Button>
-                    </Link>
-                    <LikeButton
-                      liked={rental.liked}
-                      toggleLike={() => toggleLike(rental._id)}
-                    />
-                  </CardFooter>
-                </div>
-                <div className="w-1/3 relative">
-                  <Carousel>
-                    <CarouselContent>
-                      {rental.images.map((img: string) => {
-                        return (
-                          <CarouselItem>
-                            <img src={img} alt={rental.title} />
-                          </CarouselItem>
-                        );
-                      })}
-                    </CarouselContent>
-                  </Carousel>
-                </div>
-              </div>
-            </Card>
+            <ApartmentCard apartment={rental} toggleLike={toggleLike} />
           ))
         )}
       </div>
