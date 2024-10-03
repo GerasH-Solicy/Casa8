@@ -1,3 +1,4 @@
+import { PostStatus, PropertyType } from "@/lib/enum";
 import mongoose from "mongoose";
 
 const apartmentSchema = new mongoose.Schema({
@@ -26,7 +27,7 @@ const apartmentSchema = new mongoose.Schema({
   },
   propertyType: {
     type: String,
-    enum: ["Apartment", "House", "Loft", "Studio", "Townhouse"],
+    enum: PropertyType,
     required: true,
   },
   bedrooms: {
@@ -52,6 +53,10 @@ const apartmentSchema = new mongoose.Schema({
   images: {
     type: Array<String>,
     default: [],
+  },
+  status: {
+    type: String,
+    enum: PostStatus,
   },
   available: {
     type: Date,

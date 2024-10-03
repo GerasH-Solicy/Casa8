@@ -1,10 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useAuth } from "@clerk/nextjs";
 import { Heart } from "lucide-react";
 import LoginRequired from "../loginRequired";
@@ -33,16 +30,12 @@ export default function LikeButton({ liked, toggleLike }: LikeButtonProps) {
         </DialogContent>
       </Dialog>
 
-      <Button
-        onClick={onClick}
-        className={liked ? "bg-red-300" : ""}
-        variant="ghost"
-      >
-        {liked ? (
-          <Heart fill="red" color="red" className="h-4 w-4" />
-        ) : (
-          <Heart className="h-4 w-4" />
-        )}
+      <Button onClick={onClick} variant="ghost">
+        <Heart
+          className={`h-6 w-6 ${
+            liked ? "fill-primary text-primary" : "text-primary"
+          }`}
+        />
       </Button>
     </div>
   );
