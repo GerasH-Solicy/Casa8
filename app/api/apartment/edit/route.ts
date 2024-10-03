@@ -7,6 +7,7 @@ export async function POST(request: NextRequest) {
         const formData = await request.formData();
         const files = formData.getAll("images") as File[];
         const newImgArray = formData.getAll("newImageArray") as string[];
+        const amenities = formData.getAll("amenities") as string[];
         const formDataFields = Object.fromEntries(formData.entries());
 
         const { id } = formDataFields
@@ -53,6 +54,10 @@ export async function POST(request: NextRequest) {
         delete formDataFields.id
         delete formDataFields.images
         delete formDataFields.newImageArray
+
+        if(amenities.length){
+            formDataFields.amenities = amenities as any
+        }
 
         const data = { ...formDataFields, images: changedImgArray.filter(el => el.length > 0) }
         const updatedApartment = await Apartment.findOneAndUpdate({ _id: id }, { ...data }, { new: true })

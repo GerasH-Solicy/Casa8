@@ -216,7 +216,12 @@ export default function ApartmentDetail({ id }: ApartmentProps) {
 
           <div className="mt-6 flex items-center text-muted-foreground">
             <Calendar className="h-5 w-5 mr-2 text-primary" />
-            <span>Available from: {rental?.available?.toDateString()}</span>
+            <span>
+              Available from:{" "}
+              {rental?.available
+                ? new Date(rental?.available as any).toISOString().split("T")[0]
+                : ""}
+            </span>
           </div>
         </CardContent>
         <CardFooter className="flex justify-between bg-primary/5 mt-6">

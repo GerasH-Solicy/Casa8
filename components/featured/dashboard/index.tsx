@@ -56,7 +56,6 @@ import {
 import { Apartment } from "@/lib/interface";
 import { PostStatus } from "@/lib/enum";
 
-
 export default function Dashboard() {
   const [amenities, setAmenities] = useState<string[]>([]);
   const [apartments, setApartments] = useState<Apartment[]>([]);
@@ -499,9 +498,11 @@ export default function Dashboard() {
                       name="available"
                       type="date"
                       defaultValue={
-                        new Date(editingApartment?.available as any)
-                          .toISOString()
-                          .split("T")[0]
+                        editingApartment?.available
+                          ? new Date(editingApartment?.available as any)
+                              .toISOString()
+                              .split("T")[0]
+                          : ""
                       }
                       className="w-full"
                     />
