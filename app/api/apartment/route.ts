@@ -33,6 +33,8 @@ export async function GET(request: NextRequest) {
   }
   await connectDb();
 
+  filterObj.status = PostStatus.ACTIVE
+
   let apartments = await Apartment.find(filterObj);
   if (userEmail?.length) {
     const user = await User.findOne({ email: userEmail });
