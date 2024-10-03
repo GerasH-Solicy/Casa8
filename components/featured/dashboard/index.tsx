@@ -348,12 +348,12 @@ export default function Dashboard() {
                   if (!images.length) {
                     updatedFormData.append("newImageArray", [] as any);
                   }
-                  images.forEach((image, index) =>
+                  images.forEach((image) =>
                     updatedFormData.append(`newImageArray`, image)
                   );
                 }
 
-                newImages.forEach((image: any, index: number) =>
+                newImages.forEach((image: any) =>
                   updatedFormData.append(`images`, image)
                 );
 
