@@ -15,7 +15,6 @@ export async function POST(request: NextRequest) {
             throw Error("Not all arguments provided. Required - id")
         }
 
-        console.log('new ----', newImgArray)
         let changedImgArray: string[] = []
         if (files.length) {
             const uploadedUrls = await Promise.all(
@@ -42,8 +41,12 @@ export async function POST(request: NextRequest) {
             changedImgArray = uploadedUrls
         }
 
-        if (newImgArray) {
+        const apartment = await Apartment.findById(id)
+
+        if (newImgArray.length) {
             changedImgArray = [...changedImgArray, ...newImgArray]
+        } else {
+            changedImgArray = [...changedImgArray, ...apartment.images]
         }
 
 
@@ -51,11 +54,10 @@ export async function POST(request: NextRequest) {
         delete formDataFields.images
         delete formDataFields.newImageArray
 
-        const data = { ...formDataFields, images: changedImgArray }
-        console.log('dat a---', data)
-        const apartment = await Apartment.findOneAndUpdate({ _id: id }, { ...data })
+        const data = { ...formDataFields, images: changedImgArray.filter(el => el.length > 0) }
+        const updatedApartment = await Apartment.findOneAndUpdate({ _id: id }, { ...data }, { new: true })
 
-        return NextResponse.json({ success: true, apartment });
+        return NextResponse.json({ success: true, apartment: updatedApartment });
     } catch (err: any) {
         return NextResponse.json({ success: false, error: err.message });
     }

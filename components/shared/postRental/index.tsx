@@ -44,7 +44,6 @@ export default function PostRental() {
     amenities: [],
   });
   const [loading, setLoading] = useState<boolean>(false);
-  const [errors, setErrors] = useState<any>(null);
 
   const handleInputChange = (e: any) => {
     const { name, value } = e.target;
@@ -116,7 +115,11 @@ export default function PostRental() {
         });
       }
     } catch (err: any) {
-      setErrors(err.message || "An error occurred");
+      toast({
+        title: "Error on creation post.",
+        description: err.message,
+        variant: "destructive",
+      });
     }
   };
 
@@ -323,7 +326,6 @@ export default function PostRental() {
           <Button type="submit" disabled={loading} className="w-full">
             {loading ? "Creating post ..." : "Post Rental"}
           </Button>
-          {errors && <p className="text-red-500">{errors}</p>}
         </form>
       </CardContent>
     </Card>

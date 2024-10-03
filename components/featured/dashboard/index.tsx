@@ -26,7 +26,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Table,
@@ -42,49 +41,88 @@ import { Amenities } from "@/lib/constants";
 import { useUser } from "@clerk/nextjs";
 import { useApartament } from "@/hooks/useApartament";
 import { useToast } from "@/hooks/use-toast";
+import Link from "next/link";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Apartment } from "@/lib/interface";
+import { PostStatus } from "@/lib/enum";
 
-interface Apartment {
-  _id: string;
-  title: string;
-  description: string;
-  address: string;
-  city: string;
-  monthlyRent: number;
-  propertyType: "Apartment" | "House" | "Loft" | "Studio" | "Townhouse";
-  bedrooms: number;
-  bathrooms: number;
-  squareFootage: number;
-  createdAt?: Date;
-  userEmail: string;
-  images?: string[];
-  available?: string;
-  amenities?: string[];
-  liked?: boolean;
-}
 
 export default function Dashboard() {
   const [amenities, setAmenities] = useState<string[]>([]);
   const [apartments, setApartments] = useState<Apartment[]>([]);
   const { user } = useUser();
   const { toast } = useToast();
-  const { editApartament, getUserApartments } = useApartament();
+  const { editApartament, getUserApartments, deleteApartment } =
+    useApartament();
   const [editingApartment, setEditingApartment] = useState<Apartment | null>(
     null
   );
+  const [openDelete, setOpenDelete] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
   const [images, setImages] = useState<string[]>([]);
   const [newImages, setNewImages] = useState<any[]>([]);
 
   const handleEdit = (apartment: Apartment) => {
+    setNewImages([]);
     setAmenities(apartment?.amenities as any);
     setImages(apartment?.images as any);
     setEditingApartment(apartment);
+  };
+
+  const togleStatus = async (id: string, status: PostStatus) => {
+    const formData = new FormData();
+    formData.append("id", id);
+    formData.append("status", status);
+    setLoading(true);
+    const res = await editApartament(formData);
+    setLoading(false);
+    if (res.success) {
+      setApartments(
+        apartments.map((el) => (el._id === id ? { ...el, status } : el))
+      );
+    } else {
+      toast({
+        title: "Something gone wrong.",
+        description: res.message,
+      });
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    setLoading(true);
+    const res = await deleteApartment(id);
+    setLoading(false);
+    if (res.success) {
+      toast({
+        title: "Successfully deleted.",
+        description: "Your apartment deleted successfully.",
+      });
+      setApartments(apartments.filter((apartment) => apartment._id !== id));
+      return;
+    }
+    toast({
+      title: "Something gone wrong.",
+      description: res.message,
+    });
   };
 
   const fetchUserApartments = async () => {
     if (!user?.emailAddresses[0]?.emailAddress) {
       return;
     }
+    setLoading(true);
     const res = await getUserApartments(user.emailAddresses[0].emailAddress);
+    setLoading(false);
     setApartments(res.apartments);
   };
 
@@ -102,10 +140,6 @@ export default function Dashboard() {
       return;
     }
     setNewImages([...newImages, ...Array.from(e.target.files)]);
-  };
-
-  const handleDelete = (id: string) => {
-    setApartments(apartments.filter((apartment) => apartment._id !== id));
   };
 
   const handleDeleteImage = (index: number) => {
@@ -149,6 +183,7 @@ export default function Dashboard() {
                 <TableHead>Address</TableHead>
                 <TableHead>Monthly Rent</TableHead>
                 <TableHead>Type</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead>Bedrooms</TableHead>
                 <TableHead>Bathrooms</TableHead>
                 <TableHead>Actions</TableHead>
@@ -161,6 +196,27 @@ export default function Dashboard() {
                   <TableCell>{`${apartment.address}, ${apartment.city}`}</TableCell>
                   <TableCell>${apartment.monthlyRent}/month</TableCell>
                   <TableCell>{apartment.propertyType}</TableCell>
+                  <TableCell>
+                    <Select
+                      disabled={loading}
+                      value={apartment.status}
+                      onValueChange={(value: PostStatus) =>
+                        togleStatus(apartment._id, value)
+                      }
+                    >
+                      <SelectTrigger className="w-[100px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={PostStatus.ACTIVE}>
+                          Active
+                        </SelectItem>
+                        <SelectItem value={PostStatus.INACTIVE}>
+                          Inactive
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </TableCell>
                   <TableCell>{apartment.bedrooms}</TableCell>
                   <TableCell>{apartment.bathrooms}</TableCell>
                   <TableCell>
@@ -172,13 +228,41 @@ export default function Dashboard() {
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleDelete(apartment._id)}
+                      <AlertDialog
+                        open={openDelete}
+                        onOpenChange={setOpenDelete}
                       >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            className="flex items-center gap-2"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent className="bg-white">
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>
+                              Are you absolutely sure?
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action cannot be undone. This will
+                              permanently delete your apartment and remove it
+                              from our servers.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleDelete(apartment._id)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -187,9 +271,11 @@ export default function Dashboard() {
           </Table>
         </CardContent>
         <CardFooter>
-          <Button className="w-full">
-            <Plus className="mr-2 h-4 w-4" /> Add New Property
-          </Button>
+          <Link href="/?tab=post">
+            <Button className="w-full">
+              <Plus className="mr-2 h-4 w-4" /> Add New Property
+            </Button>
+          </Link>
         </CardFooter>
       </Card>
 
@@ -247,11 +333,6 @@ export default function Dashboard() {
                   }
                 }
 
-                console.log(
-                  "Updated fields: ",
-                  updatedFields,
-                  editingApartment._id
-                );
                 if (
                   JSON.stringify(amenities) !==
                   JSON.stringify(editingApartment.amenities)
@@ -264,7 +345,6 @@ export default function Dashboard() {
                   JSON.stringify(images) !==
                   JSON.stringify(editingApartment.images)
                 ) {
-                  console.log("working=-====", images);
                   if (!images.length) {
                     updatedFormData.append("newImageArray", [] as any);
                   }
@@ -292,9 +372,18 @@ export default function Dashboard() {
                 });
 
                 updatedFormData.append("id", editingApartment._id);
-
-                await editApartament(updatedFormData);
-                handleSave({ ...editingApartment, ...updatedFields });
+                setLoading(true);
+                const res = await editApartament(updatedFormData);
+                setLoading(false);
+                if (res.success) {
+                  handleSave(res.apartment);
+                  toast({
+                    title: "Successfully edited.",
+                    description: "Apartment edited successfully.",
+                  });
+                } else {
+                  toast({ title: "Edit error", description: res.message });
+                }
               }}
             >
               <div className="gap-4 py-4 flex">
@@ -518,7 +607,9 @@ export default function Dashboard() {
                 </div>
               </div>
               <DialogFooter>
-                <Button type="submit">Save changes</Button>
+                <Button disabled={loading} type="submit">
+                  {loading ? "Loading..." : "Save changes"}
+                </Button>
               </DialogFooter>
             </form>
           </DialogContent>

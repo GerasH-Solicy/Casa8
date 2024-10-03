@@ -1,3 +1,5 @@
+import { PostStatus, PropertyType } from "./enum";
+
 export interface Apartment {
     _id: string;
     title: string;
@@ -5,7 +7,7 @@ export interface Apartment {
     address: string;
     city: string;
     monthlyRent: number;
-    propertyType: "Apartment" | "House" | "Loft" | "Studio" | "Townhouse";
+    propertyType: PropertyType;
     bedrooms: number;
     bathrooms: number;
     squareFootage: number;
@@ -15,4 +17,6 @@ export interface Apartment {
     available?: Date;
     amenities?: string[];
     liked?: boolean
+    status: PostStatus
+    landlord?: any
 }

@@ -3,6 +3,7 @@ import connectDb from "../db";
 import Apartment from "@/app/models/post";
 import { cloudinary } from "../cloudinaryConfig";
 import User from "@/app/models/user";
+import { PostStatus } from "@/lib/enum";
 
 export async function GET(request: NextRequest) {
   const url = new URL(request.url);
@@ -84,6 +85,7 @@ export async function POST(request: NextRequest) {
       ...formDataFields,
       amenities,
       images: uploadedUrls,
+      status: PostStatus.ACTIVE
     };
 
     const apartment = await Apartment.create(apartmentData);

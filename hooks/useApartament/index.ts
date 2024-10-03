@@ -31,6 +31,11 @@ export function useApartament() {
     return res.data;
   };
 
+  const deleteApartment = async (id: string) => {
+    const res = await axiosInstance.delete(`apartment/delete/${id}`);
+    return res.data;
+  };
+
   const createApartament = async (data: any) => {
     const res = await axiosInstance.post("apartment", data);
     return res.data;
@@ -52,6 +57,7 @@ export function useApartament() {
     getApartamentById,
     getUserLikedApartments,
     getUserApartments,
+    deleteApartment,
     editApartament
   };
 }

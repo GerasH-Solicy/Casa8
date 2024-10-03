@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -16,6 +15,7 @@ import ApartmentCard from "@/components/shared/apartmentCard";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Apartment } from "@/lib/interface";
+import Empty from "@/components/shared/empty";
 
 export default function LikedProperties() {
   const [likedProperties, setLikedProperties] = useState<Apartment[]>([]);
@@ -120,14 +120,10 @@ export default function LikedProperties() {
           </div>
         </div>
       ) : sortedProperties.length === 0 ? (
-        <Card className="w-full">
-          <CardContent className="pt-6">
-            <p className="text-center text-muted-foreground">
-              No saved properties found. Start exploring and save your favorite
-              listings!
-            </p>
-          </CardContent>
-        </Card>
+        <Empty
+          text="No saved properties found. Start exploring and save your favorite
+              listings!"
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
           {sortedProperties.map((property) => (
