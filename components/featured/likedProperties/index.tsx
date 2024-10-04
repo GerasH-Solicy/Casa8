@@ -31,13 +31,13 @@ export default function LikedProperties() {
     if (disableLike) {
       return;
     }
-    if (!user?.emailAddresses[0].emailAddress) {
+    if (!user?.primaryEmailAddress?.emailAddress) {
       return;
     }
 
     setDisableLike(true);
     const res = await toogleLikeApartament({
-      email: user?.emailAddresses[0].emailAddress,
+      email: user?.primaryEmailAddress?.emailAddress,
       apartmentId: id,
     });
     setDisableLike(false);
@@ -51,12 +51,12 @@ export default function LikedProperties() {
   };
 
   const fetchUserLikedApartments = async () => {
-    if (!user?.emailAddresses[0]?.emailAddress) {
+    if (!user?.primaryEmailAddress?.emailAddress) {
       return;
     }
     setLoading(true);
     const res = await getUserLikedApartments(
-      user?.emailAddresses[0].emailAddress
+      user?.primaryEmailAddress?.emailAddress
     );
     setLoading(false);
     setLikedProperties(res.apartments);

@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
@@ -25,12 +24,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import CityInput from "../cityInput";
 
 export default function SearchRental() {
   const { user } = useUser();
   const [rentals, setRentals] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  const [sortBy, setSortBy] = useState("price");
+  const [sortBy, setSortBy] = useState("newest");
   const { getAllApartaments, toogleLikeApartament } = useApartament();
   const [disableLike, setDisableLike] = useState<boolean>();
   const [searchWord, setSearchWord] = useState<string>("");
@@ -41,7 +41,7 @@ export default function SearchRental() {
     const res = await getAllApartaments({
       ...filter,
       searchWord,
-      userEmail: user?.emailAddresses[0].emailAddress ?? "",
+      userEmail: user?.primaryEmailAddress?.emailAddress ?? "",
     });
     setLoading(false);
     setRentals(res.apartments);
@@ -53,7 +53,7 @@ export default function SearchRental() {
     }
     setDisableLike(true);
     const res = await toogleLikeApartament({
-      email: user?.emailAddresses[0].emailAddress,
+      email: user?.primaryEmailAddress?.emailAddress,
       apartmentId: id,
     });
     setDisableLike(false);
@@ -84,6 +84,11 @@ export default function SearchRental() {
       if (sortBy === "sqft") {
         return b.squareFootage - a.squareFootage;
       }
+      if (sortBy === "newest") {
+        return (
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+      }
       return 0;
     });
   }, [rentals, sortBy]);
@@ -94,33 +99,37 @@ export default function SearchRental() {
         value={listType}
         onValueChange={(value: string) => setListType(value as any)}
       >
-        <Card>
+        <Card className="w-full">
           <CardHeader>
             <CardTitle>Find Your Next Home</CardTitle>
           </CardHeader>
-          <CardContent className="flex items-center">
-            <div className="w-[65%] flex">
-              <ApartmentFilter fetch={fetchAppartments} />
-            </div>
-            <div className="flex space-x-2 w-[35%]">
-              <Input
-                className="w-[250px]"
-                onChange={(e) => setSearchWord(e.target.value)}
-                placeholder="Enter city"
-              />
-              <Button onClick={fetchAppartments}>
-                <Search className="mr-2 h-4 w-4" /> Search
-              </Button>
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-full sm:w-[180px]">
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="price">Price: Low to High</SelectItem>
-                  <SelectItem value="bedrooms">Most Bedrooms</SelectItem>
-                  <SelectItem value="sqft">Largest Area</SelectItem>
-                </SelectContent>
-              </Select>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="w-full">
+                <ApartmentFilter fetch={fetchAppartments} />
+              </div>
+              <div className="w-full flex gap-2">
+                <CityInput
+                  clasName="w-full"
+                  onSelect={(value) => setSearchWord(value)}
+                />
+                <Button onClick={fetchAppartments} className="flex-grow">
+                  <Search className="mr-2 h-4 w-4" /> Search
+                </Button>
+              </div>
+              <div className="w-full flex space-x-2">
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sort by" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="price">Price: Low to High</SelectItem>
+                    <SelectItem value="bedrooms">Most Bedrooms</SelectItem>
+                    <SelectItem value="sqft">Largest Area</SelectItem>
+                    <SelectItem value="newest">Newest</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </CardContent>
         </Card>

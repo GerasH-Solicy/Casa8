@@ -40,7 +40,8 @@
     "react-dom": "^18",
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7",
-    "tls": "^0.0.1"
+    "tls": "^0.0.1",
+    "use-places-autocomplete": "^4.0.1"
   },
   "browser": {
     "child_process": false

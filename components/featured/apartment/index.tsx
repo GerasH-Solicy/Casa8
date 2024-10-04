@@ -1,13 +1,11 @@
 "use client";
 
 import {
-  Heart,
   MapPin,
   Bath,
   DollarSign,
   SquareIcon,
   Bed,
-  Calendar,
   MessageCircle,
   Mail,
   Phone,
@@ -15,6 +13,7 @@ import {
   Copy,
   ChevronLeft,
   ChevronRight,
+  ArrowLeft,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -50,6 +49,9 @@ import { Label } from "@/components/ui/label";
 import Image from "next/image";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Apartment } from "@/lib/interface";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import LikeButton from "@/components/shared/likeButton";
 
 interface ApartmentProps {
   id: string;
@@ -64,13 +66,20 @@ export default function ApartmentDetail({ id }: ApartmentProps) {
   const [isCopied, setIsCopied] = useState(false);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const router = useRouter();
   const { getApartamentById, toogleLikeApartament } = useApartament();
 
   const fetchAppartment = async () => {
+    if (rental) {
+      return;
+    }
     const res = await getApartamentById(
       id,
-      user?.emailAddresses[0].emailAddress ?? ""
+      user?.primaryEmailAddress?.emailAddress ?? ""
     );
+    if (!res || !res?.apartment) {
+      router.push("/404");
+    }
     setRental(res.apartment);
   };
 
@@ -80,7 +89,7 @@ export default function ApartmentDetail({ id }: ApartmentProps) {
     }
     setDisableLike(true);
     const res = await toogleLikeApartament({
-      email: user?.emailAddresses[0].emailAddress,
+      email: user?.primaryEmailAddress?.emailAddress,
       apartmentId: rental._id,
     });
     setDisableLike(false);
@@ -108,37 +117,31 @@ export default function ApartmentDetail({ id }: ApartmentProps) {
   };
 
   const handleCopyPhone = () => {
-    navigator.clipboard.writeText("phone");
+    navigator.clipboard.writeText(rental?.phoneNumber as string);
     setIsCopied(true);
     setTimeout(() => setIsCopied(false), 2000);
   };
 
   useEffect(() => {
-    if (id) {
+    if (id && user !== undefined) {
       fetchAppartment();
     }
   }, [id, user]);
 
   return (
     <div className="container mx-auto p-4 bg-background">
+      <Link href="/">
+        <Button variant="outline" className="mb-4">
+          <ArrowLeft /> Back
+        </Button>
+      </Link>
       <Card className="w-full border-primary/20 shadow-lg">
         <CardHeader className="bg-primary/5">
           <div className="flex justify-between items-center">
             <CardTitle className="text-2xl font-bold text-primary">
               {rental?.title}
             </CardTitle>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleLike}
-              className="text-primary hover:text-primary-foreground hover:bg-primary"
-            >
-              <Heart
-                className={`h-6 w-6 ${
-                  rental?.liked ? "fill-primary text-primary" : "text-primary"
-                }`}
-              />
-            </Button>
+            <LikeButton liked={rental?.liked as boolean} toggleLike={toggleLike} />
           </div>
           <div className="flex items-center text-muted-foreground">
             <MapPin className="h-4 w-4 mr-2" />
@@ -165,8 +168,12 @@ export default function ApartmentDetail({ id }: ApartmentProps) {
                 </CarouselItem>
               ))}
             </CarouselContent>
-            <CarouselPrevious />
-            <CarouselNext />
+            {(rental?.images?.length as number) > 0 && (
+              <>
+                <CarouselPrevious />
+                <CarouselNext />
+              </>
+            )}
           </Carousel>
 
           <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -178,11 +185,19 @@ export default function ApartmentDetail({ id }: ApartmentProps) {
             </div>
             <div className="flex items-center bg-secondary/20 p-2 rounded-md">
               <Bed className="h-5 w-5 mr-2 text-primary" />
-              <span>{rental?.bedrooms} Bedrooms</span>
+              <span>
+                {rental?.bedrooms
+                  ? `${rental.bedrooms} Bedrooms`
+                  : "No Bedrooms"}
+              </span>
             </div>
             <div className="flex items-center bg-secondary/20 p-2 rounded-md">
               <Bath className="h-5 w-5 mr-2 text-primary" />
-              <span>{rental?.bathrooms} Bathrooms</span>
+              <span>
+                {rental?.bathrooms
+                  ? `${rental.bathrooms} bathrooms`
+                  : "No bathroom"}
+              </span>
             </div>
             <div className="flex items-center bg-secondary/20 p-2 rounded-md">
               <SquareIcon className="h-5 w-5 mr-2 text-primary" />
@@ -213,18 +228,8 @@ export default function ApartmentDetail({ id }: ApartmentProps) {
               ))}
             </div>
           </div>
-
-          <div className="mt-6 flex items-center text-muted-foreground">
-            <Calendar className="h-5 w-5 mr-2 text-primary" />
-            <span>
-              Available from:{" "}
-              {rental?.available
-                ? new Date(rental?.available as any).toISOString().split("T")[0]
-                : ""}
-            </span>
-          </div>
         </CardContent>
-        <CardFooter className="flex justify-between bg-primary/5 mt-6">
+        <CardFooter className="flex justify-between items-center bg-primary/5 mt-6">
           <Button
             variant="outline"
             className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
@@ -251,8 +256,15 @@ export default function ApartmentDetail({ id }: ApartmentProps) {
               {rental?.landlord?.name}
             </DialogDescription>
           </DialogHeader>
-          <Tabs defaultValue="chat" className="w-full">
+          <Tabs defaultValue="phone" className="w-full">
             <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger
+                value="phone"
+                className="flex items-center justify-center"
+              >
+                <Phone className="w-4 h-4 mr-2" />
+                Phone
+              </TabsTrigger>
               <TabsTrigger
                 value="chat"
                 className="flex items-center justify-center"
@@ -267,13 +279,6 @@ export default function ApartmentDetail({ id }: ApartmentProps) {
                 <Mail className="w-4 h-4 mr-2" />
                 Email
               </TabsTrigger>
-              <TabsTrigger
-                value="phone"
-                className="flex items-center justify-center"
-              >
-                <Phone className="w-4 h-4 mr-2" />
-                Phone
-              </TabsTrigger>
             </TabsList>
             <TabsContent value="chat">
               <Card>
@@ -284,14 +289,15 @@ export default function ApartmentDetail({ id }: ApartmentProps) {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Textarea
+                  <p className="text-center">Will be available soon!</p>
+                  {/* <Textarea
                     placeholder="Type your message here..."
                     className="min-h-[100px]"
-                  />
+                  /> */}
                 </CardContent>
-                <CardFooter>
+                {/* <CardFooter>
                   <Button className="w-full">Send Message</Button>
-                </CardFooter>
+                </CardFooter> */}
               </Card>
             </TabsContent>
             <TabsContent value="email">
@@ -304,7 +310,7 @@ export default function ApartmentDetail({ id }: ApartmentProps) {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex items-center space-x-2">
-                    <Input value={rental?.landlord?.email} readOnly />
+                    <Input value={rental?.userEmail} readOnly />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="emailMessage">Your Message</Label>
@@ -323,14 +329,14 @@ export default function ApartmentDetail({ id }: ApartmentProps) {
             <TabsContent value="phone">
               <Card>
                 <CardHeader>
-                  <CardTitle>Call {rental?.landlord?.name}</CardTitle>
+                  <CardTitle>Call</CardTitle>
                   <CardDescription>
                     Use the phone number below to call directly
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center space-x-2">
-                    <Input value={rental?.landlord?.phone} readOnly />
+                    <Input value={rental?.phoneNumber} readOnly />
                     <Button
                       variant="outline"
                       size="icon"
@@ -408,20 +414,42 @@ export default function ApartmentDetail({ id }: ApartmentProps) {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="firstName">First Name</Label>
-                    <Input id="firstName" name="firstName" required />
+                    <Input
+                      id="firstName"
+                      name="firstName"
+                      required
+                      defaultValue={user?.firstName as string}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="lastName">Last Name</Label>
-                    <Input id="lastName" name="lastName" required />
+                    <Input
+                      id="lastName"
+                      name="lastName"
+                      required
+                      defaultValue={user?.lastName as string}
+                    />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email">Email Address</Label>
-                  <Input id="email" name="email" type="email" required />
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    required
+                    defaultValue={user?.primaryEmailAddress?.emailAddress}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="phone">Phone Number</Label>
-                  <Input id="phone" name="phone" type="tel" required />
+                  <Input
+                    id="phone"
+                    name="phone"
+                    // type="tel"
+                    required
+                    defaultValue={user?.phoneNumbers[0]?.phoneNumber}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="message">Additional Message (Optional)</Label>

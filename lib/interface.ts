@@ -16,6 +16,7 @@ export interface Apartment {
     images?: string[];
     available?: Date;
     amenities?: string[];
+    phoneNumber?: string
     liked?: boolean
     status: PostStatus
     landlord?: any
