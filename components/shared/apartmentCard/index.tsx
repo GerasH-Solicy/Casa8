@@ -15,6 +15,7 @@ import {
   CarouselContent,
   CarouselItem,
 } from "@/components/ui/carousel";
+import Image from "next/image";
 
 interface ApartmentCardProps {
   apartment: Apartment;
@@ -58,7 +59,7 @@ export default function ApartmentCard({
               {apartment?.images?.map((img: string) => {
                 return (
                   <CarouselItem>
-                    <img src={img} alt={apartment.title} />
+                    <Image width={200} height={10} src={img} alt={apartment.title} />
                   </CarouselItem>
                 );
               })}
