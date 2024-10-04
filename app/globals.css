@@ -7,16 +7,17 @@
   --foreground: #171717;
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-}
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
   }
+}
+
+
+.tab-triger[data-state='active']{
+  background-color: #ccc !important;
+  color: white !important;
 }
 
 @layer base {

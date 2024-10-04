@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Upload } from "lucide-react";
+import { Upload, X } from "lucide-react";
 import { useAuth, useUser } from "@clerk/nextjs";
 import { useApartament } from "@/hooks/useApartament";
 import { useToast } from "@/hooks/use-toast";
@@ -21,6 +21,23 @@ import LoginRequired from "../loginRequired";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useRouter } from "next/navigation";
 import { Amenities } from "@/lib/constants";
+import CityInput from "../cityInput";
+
+const bathroomOptions = [
+  { value: "0", label: "No bathrooms" },
+  { value: "1", label: "1 bathroom" },
+  { value: "2", label: "2 bathrooms" },
+  { value: "3", label: "3 bathrooms" },
+  { value: "4", label: "4 bathrooms" },
+];
+
+const bedroomOptions = [
+  { value: "0", label: "No bedrooms" },
+  { value: "1", label: "1 bedroom" },
+  { value: "2", label: "2 bedrooms" },
+  { value: "3", label: "3 bedrooms" },
+  { value: "4", label: "4 bedrooms" },
+];
 
 export default function PostRental() {
   const { createApartament } = useApartament();
@@ -37,19 +54,29 @@ export default function PostRental() {
     propertyType: "",
     bedrooms: "",
     bathrooms: "",
-    available: "",
     squareFootage: "",
+    phoneNumber: "",
     images: [],
     userEmail: "",
     amenities: [],
   });
   const [loading, setLoading] = useState<boolean>(false);
+  const [openCustomBedroom, setOpenCustomBedroom] = useState<boolean>(false);
 
   const handleInputChange = (e: any) => {
     const { name, value } = e.target;
     setFormData({
       ...formData,
       [name]: value,
+    });
+  };
+
+  const handleDeleteImage = (index: number) => {
+    setFormData({
+      ...formData,
+      images: formData.images.filter(
+        (_: any, elIndex: number) => elIndex !== index
+      ),
     });
   };
 
@@ -95,7 +122,7 @@ export default function PostRental() {
       });
       formDataToSend.append(
         "userEmail",
-        user?.emailAddresses[0].emailAddress as any
+        user?.primaryEmailAddress?.emailAddress as any
       );
       setLoading(true);
       const response = await createApartament(formDataToSend);
@@ -157,24 +184,18 @@ export default function PostRental() {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="address">Address</Label>
-              <Input
-                id="address"
-                name="address"
-                value={formData.address}
-                onChange={handleInputChange}
-                placeholder="Street address"
-                required
+              <CityInput
+                clasName="w-full"
+                onSelect={(value) =>
+                  setFormData({ ...formData, address: value })
+                }
               />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 w-full">
               <Label htmlFor="city">City</Label>
-              <Input
-                id="city"
-                name="city"
-                value={formData.city}
-                onChange={handleInputChange}
-                placeholder="City"
-                required
+              <CityInput
+                clasName="w-full"
+                onSelect={(value) => setFormData({ ...formData, city: value })}
               />
             </div>
           </div>
@@ -217,27 +238,65 @@ export default function PostRental() {
           <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="bedrooms">Bedrooms</Label>
-              <Input
-                id="bedrooms"
-                name="bedrooms"
-                type="number"
-                value={formData.bedrooms}
-                onChange={handleInputChange}
-                placeholder="Number of bedrooms"
-                required
-              />
+              <div className="flex gap-2">
+                <Select
+                  required
+                  name="bedrooms"
+                  onValueChange={(value) => {
+                    if (value !== "custom") {
+                      setFormData({ ...formData, bedrooms: +value });
+                      setOpenCustomBedroom(false);
+                    } else {
+                      setOpenCustomBedroom(true);
+                    }
+                  }}
+                >
+                  <SelectTrigger id="bedrooms" className="w-full sm:w-[200px]">
+                    <SelectValue placeholder="Any bedrooms" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {bedroomOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                    <SelectItem value="custom">Custom</SelectItem>
+                  </SelectContent>
+                </Select>
+                {openCustomBedroom && (
+                  <Input
+                    type="number"
+                    name="bedrooms"
+                    placeholder="Enter bedrooms"
+                    onChange={(e) =>
+                      setFormData({ ...formData, bedrooms: e.target.value })
+                    }
+                    className="w-[100px]"
+                  />
+                )}
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="bathrooms">Bathrooms</Label>
-              <Input
-                id="bathrooms"
+              <Select
                 name="bathrooms"
-                type="number"
                 value={formData.bathrooms}
-                onChange={handleInputChange}
-                placeholder="Number of bathrooms"
+                onValueChange={(value) =>
+                  setFormData({ ...formData, bathrooms: value })
+                }
                 required
-              />
+              >
+                <SelectTrigger id="bathrooms">
+                  <SelectValue placeholder="Select bathrooms" />
+                </SelectTrigger>
+                <SelectContent>
+                  {bathroomOptions.map((el, index) => (
+                    <SelectItem key={index} value={el.value}>
+                      {el.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="squareFootage">Square Footage</Label>
@@ -249,16 +308,6 @@ export default function PostRental() {
                 onChange={handleInputChange}
                 placeholder="Total sq ft"
                 required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="availableTo">Available Time</Label>
-              <Input
-                name="available"
-                type="date"
-                id="availableTo"
-                value={formData.available}
-                onChange={handleInputChange}
               />
             </div>
             <div className="space-y-2">
@@ -281,7 +330,36 @@ export default function PostRental() {
                 ))}
               </div>
             </div>
+            <div className="w-fit">
+              <Label htmlFor="bathrooms">Phone number</Label>
+              <Select
+                name="phoneNumber"
+                value={formData.phoneNumber}
+                onValueChange={(value) =>
+                  setFormData({
+                    ...formData,
+                    phoneNumber: value === "not" ? "" : value,
+                  })
+                }
+                required
+              >
+                <SelectTrigger className="mt-2" id="bathrooms">
+                  <SelectValue placeholder="Select Phone number" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem key={"not"} value={"  "}>
+                    Without phone number
+                  </SelectItem>
+                  {user?.phoneNumbers.map((el, index) => (
+                    <SelectItem key={index} value={el.phoneNumber}>
+                      {el.phoneNumber}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
+
           <div className="space-y-2">
             <Label htmlFor="images">Property Images</Label>
             <div className="flex items-center justify-center w-full">
@@ -313,12 +391,23 @@ export default function PostRental() {
             <div className="flex space-x-4 mt-4">
               {formData.images.length > 0 &&
                 formData.images.map((image: any, index: number) => (
-                  <div key={index} className="relative w-24 h-24">
+                  <div key={index} className="relative w-24 h-24 group">
                     <img
                       src={URL.createObjectURL(image)}
                       alt={`Preview ${index + 1}`}
                       className="object-cover w-full h-full rounded-lg"
                     />
+                    <Button
+                      variant="destructive"
+                      size="icon"
+                      className="absolute top-0 right-0 -mt-2 -mr-2 opacity-100 transition-opacity"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleDeleteImage(index);
+                      }}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
                   </div>
                 ))}
             </div>

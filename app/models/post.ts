@@ -62,6 +62,10 @@ const apartmentSchema = new mongoose.Schema({
     type: Date,
     required: false,
   },
+  phoneNumber: {
+    type: String,
+    required: false,
+  },
   amenities: {
     type: Array<String>,
     default: [],
