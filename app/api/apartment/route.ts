@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
   }
 
   if (searchWord) {
-    filterObj.title = { $regex: searchWord, $options: "i" };
+    filterObj.city = { $regex: searchWord, $options: "i" };
   }
 
   if (bathroom) {

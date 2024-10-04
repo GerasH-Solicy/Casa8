@@ -33,7 +33,7 @@ export default function LikeButton({ liked, toggleLike }: LikeButtonProps) {
       <Button onClick={onClick} variant="ghost">
         <Heart
           className={`h-6 w-6 ${
-            liked ? "fill-primary text-primary" : "text-primary"
+            liked ? "fill-red-500 text-red-500" : "text-primary"
           }`}
         />
       </Button>

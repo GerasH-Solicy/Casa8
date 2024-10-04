@@ -21,6 +21,8 @@ const bathroomOptions = [
   { value: "any", label: "Any bathrooms" },
   { value: "1", label: "1 bathroom" },
   { value: "2", label: "2 bathrooms" },
+  { value: "3", label: "3 bathrooms" },
+  { value: "4", label: "4 bathrooms" },
 ];
 
 interface ApartmentFilterProps {
@@ -31,12 +33,11 @@ export default function ApartmentFilter({ fetch }: ApartmentFilterProps) {
   const [bedroom, setBedroom] = useState("");
   const [bathroom, setBathroom] = useState("");
   const [customBedroom, setCustomBedroom] = useState("");
-  const [customBathroom, setCustomBathroom] = useState("");
 
   const handleFilterApply = async () => {
     await fetch({
       bedroom: bedroom === "custom" ? customBedroom : bedroom,
-      bathroom: bathroom === "custom" ? customBathroom : bathroom,
+      bathroom,
     });
   };
 
@@ -44,12 +45,11 @@ export default function ApartmentFilter({ fetch }: ApartmentFilterProps) {
     setBedroom("");
     setBathroom("");
     setCustomBedroom("");
-    setCustomBathroom("");
   };
 
   return (
-    <div className="flex flex-wrap gap-4 items-center p-4 rounded-lg bg-background">
-      <div className=" flex items-center gap-2">
+    <div className="flex flex-col gap-4 sm:flex-wrap sm:flex-row items-center rounded-lg bg-background">
+      <div className="flex items-center gap-2 w-full sm:w-auto">
         <Select
           value={bedroom}
           onValueChange={(value) => {
@@ -57,7 +57,7 @@ export default function ApartmentFilter({ fetch }: ApartmentFilterProps) {
             if (value !== "custom") setCustomBedroom("");
           }}
         >
-          <SelectTrigger id="bedrooms" className="w-[200px]">
+          <SelectTrigger id="bedrooms" className="w-full sm:w-[200px]">
             <SelectValue placeholder="Any bedrooms" />
           </SelectTrigger>
           <SelectContent>
@@ -80,15 +80,14 @@ export default function ApartmentFilter({ fetch }: ApartmentFilterProps) {
         )}
       </div>
 
-      <div className=" flex items-center gap-2">
+      <div className="flex items-center gap-2 w-full sm:w-auto">
         <Select
           value={bathroom}
           onValueChange={(value) => {
             setBathroom(value);
-            if (value !== "custom") setCustomBathroom("");
           }}
         >
-          <SelectTrigger id="bathrooms" className="w-[200px]">
+          <SelectTrigger id="bathrooms" className="w-full sm:w-[200px]">
             <SelectValue placeholder="Any bathrooms" />
           </SelectTrigger>
           <SelectContent>
@@ -97,23 +96,22 @@ export default function ApartmentFilter({ fetch }: ApartmentFilterProps) {
                 {option.label}
               </SelectItem>
             ))}
-            <SelectItem value="custom">Custom</SelectItem>
           </SelectContent>
         </Select>
-        {bathroom === "custom" && (
-          <Input
-            type="number"
-            placeholder="Enter bathrooms"
-            value={customBathroom}
-            onChange={(e) => setCustomBathroom(e.target.value)}
-            className="w-[100px]"
-          />
-        )}
       </div>
-      <Button onClick={handleFilterApply}>Apply</Button>
-      <Button variant="outline" onClick={handleClearFilters}>
-        Clear Filters
-      </Button>
+
+      <div className="flex gap-2 w-full sm:w-auto justify-end sm:justify-start">
+        <Button onClick={handleFilterApply} className="w-full sm:w-auto">
+          Apply
+        </Button>
+        <Button
+          variant="outline"
+          onClick={handleClearFilters}
+          className="w-full sm:w-auto"
+        >
+          Clear Filters
+        </Button>
+      </div>
     </div>
   );
 }

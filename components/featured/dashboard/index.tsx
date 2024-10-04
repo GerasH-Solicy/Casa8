@@ -116,11 +116,11 @@ export default function Dashboard() {
   };
 
   const fetchUserApartments = async () => {
-    if (!user?.emailAddresses[0]?.emailAddress) {
+    if (!user?.primaryEmailAddress?.emailAddress) {
       return;
     }
     setLoading(true);
-    const res = await getUserApartments(user.emailAddresses[0].emailAddress);
+    const res = await getUserApartments(user.primaryEmailAddress?.emailAddress);
     setLoading(false);
     setApartments(res.apartments);
   };
@@ -306,17 +306,6 @@ export default function Dashboard() {
                     key === "squareFootage"
                   ) {
                     newValue = Number(value);
-                  } else if (key === "available") {
-                    const formDate = new Date(value as string);
-                    const currentDate = new Date(
-                      editingApartment?.available as any
-                    );
-
-                    if (formDate.getTime() !== currentDate.getTime()) {
-                      newValue = formDate;
-                      updatedFields[key as keyof Apartment] = newValue;
-                    }
-                    continue;
                   } else if (key === "amenities") {
                     newValue = (value as string)
                       .split(",")
@@ -362,8 +351,6 @@ export default function Dashboard() {
                       value.forEach((item) =>
                         updatedFormData.append(key, item)
                       );
-                    } else if (value instanceof Date) {
-                      updatedFormData.append(key, value.toISOString());
                     } else {
                       updatedFormData.append(key, value as any);
                     }
@@ -379,6 +366,7 @@ export default function Dashboard() {
                   toast({
                     title: "Successfully edited.",
                     description: "Apartment edited successfully.",
+                    variant: "default",
                   });
                 } else {
                   toast({ title: "Edit error", description: res.message });
@@ -492,22 +480,6 @@ export default function Dashboard() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="edit-available">Available Date</Label>
-                    <Input
-                      id="edit-available"
-                      name="available"
-                      type="date"
-                      defaultValue={
-                        editingApartment?.available
-                          ? new Date(editingApartment?.available as any)
-                              .toISOString()
-                              .split("T")[0]
-                          : ""
-                      }
-                      className="w-full"
-                    />
-                  </div>
-                  <div className="space-y-2">
                     <Label>Amenities</Label>
                     <div className="grid grid-cols-2 gap-4">
                       {Amenities.map((amenity) => (
@@ -574,7 +546,7 @@ export default function Dashboard() {
                         <Button
                           variant="destructive"
                           size="icon"
-                          className="absolute top-0 right-0 -mt-2 -mr-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="absolute top-0 right-0 -mt-2 -mr-2 opacity-100 transition-opacity"
                           onClick={(e) => {
                             e.preventDefault();
                             handleDeleteImage(index);
@@ -595,7 +567,7 @@ export default function Dashboard() {
                         <Button
                           variant="destructive"
                           size="icon"
-                          className="absolute top-0 right-0 -mt-2 -mr-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="absolute top-0 right-0 -mt-2 -mr-2 opacity-100 transition-opacity"
                           onClick={(e) => {
                             e.preventDefault();
                             handleDeleteNewImage(index);
