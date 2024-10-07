@@ -9,10 +9,14 @@ import {
 import { SignedOut, SignInButton } from "@clerk/nextjs";
 import { LockIcon } from "lucide-react";
 
-export default function LoginRequired() {
+interface LoginRequiredProps {
+  className?: string;
+}
+
+export default function LoginRequired({ className }: LoginRequiredProps) {
   return (
     <div className="flex items-center justify-center h-[400px] bg-background">
-      <Card className="w-full max-w-md">
+      <Card className={`w-full max-w-md ${className}`}>
         <CardHeader>
           <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 rounded-full bg-primary/10">
             <LockIcon className="w-6 h-6 text-primary" />

@@ -24,7 +24,6 @@ import { Amenities } from "@/lib/constants";
 import CityInput from "../cityInput";
 
 const bathroomOptions = [
-  { value: "0", label: "No bathrooms" },
   { value: "1", label: "1 bathroom" },
   { value: "2", label: "2 bathrooms" },
   { value: "3", label: "3 bathrooms" },
@@ -32,7 +31,6 @@ const bathroomOptions = [
 ];
 
 const bedroomOptions = [
-  { value: "0", label: "No bedrooms" },
   { value: "1", label: "1 bedroom" },
   { value: "2", label: "2 bedrooms" },
   { value: "3", label: "3 bedrooms" },
@@ -59,9 +57,13 @@ export default function PostRental() {
     images: [],
     userEmail: "",
     amenities: [],
+    isChatAllowed: false,
   });
   const [loading, setLoading] = useState<boolean>(false);
+  const [showPhonNumberSelect, setShowPhonNumberSelect] =
+    useState<boolean>(false);
   const [openCustomBedroom, setOpenCustomBedroom] = useState<boolean>(false);
+  const [propertyTypeError, setPropertyTypeError] = useState<string>("");
 
   const handleInputChange = (e: any) => {
     const { name, value } = e.target;
@@ -110,6 +112,11 @@ export default function PostRental() {
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     try {
+      if (!formData.propertyType) {
+        setPropertyTypeError("Required");
+        return;
+      }
+
       const formDataToSend = new FormData();
       Object.keys(formData).forEach((key) => {
         if (key === "images") {
@@ -213,14 +220,19 @@ export default function PostRental() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="propertyType">Property Type</Label>
+              <Label htmlFor="propertyType">
+                Property Type{" "}
+                {propertyTypeError && (
+                  <span className="text-red-600">{propertyTypeError}</span>
+                )}
+              </Label>
               <Select
                 name="propertyType"
                 value={formData.propertyType}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, propertyType: value })
-                }
-                required
+                onValueChange={(value) => {
+                  setFormData({ ...formData, propertyType: value });
+                  setPropertyTypeError("");
+                }}
               >
                 <SelectTrigger id="propertyType">
                   <SelectValue placeholder="Select type" />
@@ -228,14 +240,12 @@ export default function PostRental() {
                 <SelectContent>
                   <SelectItem value="Apartment">Apartment</SelectItem>
                   <SelectItem value="House">House</SelectItem>
-                  <SelectItem value="Loft">Loft</SelectItem>
-                  <SelectItem value="Studio">Studio</SelectItem>
                   <SelectItem value="Townhouse">Townhouse</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 max-sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="bedrooms">Bedrooms</Label>
               <div className="flex gap-2">
@@ -279,12 +289,11 @@ export default function PostRental() {
             <div className="space-y-2">
               <Label htmlFor="bathrooms">Bathrooms</Label>
               <Select
+                required={true}
                 name="bathrooms"
-                value={formData.bathrooms}
                 onValueChange={(value) =>
                   setFormData({ ...formData, bathrooms: value })
                 }
-                required
               >
                 <SelectTrigger id="bathrooms">
                   <SelectValue placeholder="Select bathrooms" />
@@ -330,33 +339,56 @@ export default function PostRental() {
                 ))}
               </div>
             </div>
-            <div className="w-fit">
-              <Label htmlFor="bathrooms">Phone number</Label>
-              <Select
-                name="phoneNumber"
-                value={formData.phoneNumber}
-                onValueChange={(value) =>
-                  setFormData({
-                    ...formData,
-                    phoneNumber: value === "not" ? "" : value,
-                  })
-                }
-                required
-              >
-                <SelectTrigger className="mt-2" id="bathrooms">
-                  <SelectValue placeholder="Select Phone number" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem key={"not"} value={"  "}>
-                    Without phone number
-                  </SelectItem>
-                  {user?.phoneNumbers.map((el, index) => (
-                    <SelectItem key={index} value={el.phoneNumber}>
-                      {el.phoneNumber}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="space-y-2">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="includePhoneNumber"
+                  checked={formData.includePhoneNumber}
+                  onCheckedChange={() => {
+                    setShowPhonNumberSelect(!showPhonNumberSelect);
+                    if (!!showPhonNumberSelect) {
+                      setFormData({ ...formData, phoneNumber: "" });
+                    }
+                  }}
+                />
+                <Label htmlFor="includePhoneNumber">Include Phone Number</Label>
+              </div>
+              {showPhonNumberSelect && (
+                <Select
+                  name="phoneNumber"
+                  value={formData.phoneNumber}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, phoneNumber: value })
+                  }
+                  required
+                >
+                  <SelectTrigger id="phoneNumber">
+                    <SelectValue placeholder="Select Phone number" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {user?.phoneNumbers.map((el, index) => (
+                      <SelectItem key={index} value={el.phoneNumber}>
+                        {el.phoneNumber}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center space-x-2">
+                <Label htmlFor="chatAttachment">Allow chat</Label>
+                <Checkbox
+                  id="includePhoneNumber"
+                  checked={formData.isChatAllowed}
+                  onCheckedChange={() => {
+                    setFormData({
+                      ...formData,
+                      isChatAllowed: !formData.isChatAllowed,
+                    });
+                  }}
+                />
+              </div>
             </div>
           </div>
 

@@ -6,7 +6,5 @@ export enum PostStatus {
 export enum PropertyType {
     APARTMENT = "Apartment",
     HOUSE = "House",
-    LOFT = "Loft",
-    STUDIO = "Studio",
     TOWNHOUSE = "Townhouse",
 }

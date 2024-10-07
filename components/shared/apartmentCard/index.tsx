@@ -34,7 +34,7 @@ export default function ApartmentCard({
             <CardTitle>{apartment.title}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p>{apartment.address}</p>
+            <p>{apartment.city}</p>
             <p className="font-bold">${apartment.monthlyRent}/month</p>
             <p>
               {apartment.bedrooms} bed, {apartment.bathrooms} bath,{" "}
