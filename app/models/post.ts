@@ -70,6 +70,10 @@ const apartmentSchema = new mongoose.Schema({
     type: Array<String>,
     default: [],
   },
+  isChatAllowed: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 // Check if the model already exists

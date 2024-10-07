@@ -106,9 +106,18 @@ export default function SearchRental() {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="w-full">
+                <div className="w-full flex gap-2 max-sm:mb-2 max-sm:visible sm:h-0 invisible">
+                  <CityInput
+                    clasName="w-full"
+                    onSelect={(value) => setSearchWord(value)}
+                  />
+                  <Button onClick={fetchAppartments} className="flex-grow ">
+                    <Search className="mr-2 h-4 w-4" /> Search
+                  </Button>
+                </div>
                 <ApartmentFilter fetch={fetchAppartments} />
               </div>
-              <div className="w-full flex gap-2">
+              <div className="w-full flex gap-2 sm:visible max-sm:h-0 invisible">
                 <CityInput
                   clasName="w-full"
                   onSelect={(value) => setSearchWord(value)}

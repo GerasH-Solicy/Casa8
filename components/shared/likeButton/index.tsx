@@ -25,8 +25,11 @@ export default function LikeButton({ liked, toggleLike }: LikeButtonProps) {
   return (
     <div>
       <Dialog open={open}>
-        <DialogContent onClick={() => setOpen(false)} className="border-none">
-          <LoginRequired />
+        <DialogContent
+          onClick={() => setOpen(false)}
+          className="border-none bg-white"
+        >
+          <LoginRequired className="border-none shadow-none" />
         </DialogContent>
       </Dialog>
 

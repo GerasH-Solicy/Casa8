@@ -34,7 +34,7 @@ import {
 } from "@/components/ui/carousel";
 import { useEffect, useState } from "react";
 import { useApartament } from "@/hooks/useApartament";
-import { useUser } from "@clerk/nextjs";
+import { useAuth, useUser } from "@clerk/nextjs";
 import {
   Dialog,
   DialogContent,
@@ -47,11 +47,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Image from "next/image";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Apartment } from "@/lib/interface";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import LikeButton from "@/components/shared/likeButton";
+import { useEmail } from "@/hooks/useEmail";
+import { useToast } from "@/hooks/use-toast";
+import LoginRequired from "@/components/shared/loginRequired";
 
 interface ApartmentProps {
   id: string;
@@ -60,14 +62,20 @@ interface ApartmentProps {
 export default function ApartmentDetail({ id }: ApartmentProps) {
   const [rental, setRental] = useState<Apartment | null>(null);
   const { user } = useUser();
+  const { isSignedIn } = useAuth();
   const [isContactOpen, setIsContactOpen] = useState(false);
   const [isApplyOpen, setIsApplyOpen] = useState(false);
   const [disableLike, setDisableLike] = useState<boolean>();
   const [isCopied, setIsCopied] = useState(false);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [content, setContent] = useState<string>("");
+  const [phoneNumber, setPhoneNumber] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
   const router = useRouter();
   const { getApartamentById, toogleLikeApartament } = useApartament();
+  const { sendEmail } = useEmail();
+  const { toast } = useToast();
 
   const fetchAppartment = async () => {
     if (rental) {
@@ -116,6 +124,35 @@ export default function ApartmentDetail({ id }: ApartmentProps) {
     setSelectedImageIndex(newIndex);
   };
 
+  const handleSubmitApplication = async () => {
+    setLoading(true);
+    const newContent = `
+      Application from ${user?.primaryEmailAddress?.emailAddress}
+      Full name - ${user?.fullName}
+      Phone number - ${phoneNumber}
+
+      Additional message.
+      ${content}
+    `;
+    const res = await sendEmail({
+      from: user?.primaryEmailAddress?.emailAddress,
+      to: rental?.userEmail,
+      content: newContent,
+    });
+    setLoading(false);
+    if (res.success) {
+      toast({
+        title: "Successfully send.",
+        description: "You message is successfuly send.",
+      });
+      return;
+    }
+    toast({
+      title: "Error on sending.",
+      description: "Something gone wrong.",
+    });
+  };
+
   const handleCopyPhone = () => {
     navigator.clipboard.writeText(rental?.phoneNumber as string);
     setIsCopied(true);
@@ -127,6 +164,27 @@ export default function ApartmentDetail({ id }: ApartmentProps) {
       fetchAppartment();
     }
   }, [id, user]);
+
+  const handleSendEmail = async () => {
+    setLoading(true);
+    const res = await sendEmail({
+      from: user?.primaryEmailAddress?.emailAddress,
+      to: rental?.userEmail,
+      content,
+    });
+    setLoading(false);
+    if (res.success) {
+      toast({
+        title: "Successfully send.",
+        description: "You message is successfuly send.",
+      });
+      return;
+    }
+    toast({
+      title: "Error on sending.",
+      description: "Something gone wrong.",
+    });
+  };
 
   return (
     <div className="container mx-auto p-4 bg-background">
@@ -141,7 +199,10 @@ export default function ApartmentDetail({ id }: ApartmentProps) {
             <CardTitle className="text-2xl font-bold text-primary">
               {rental?.title}
             </CardTitle>
-            <LikeButton liked={rental?.liked as boolean} toggleLike={toggleLike} />
+            <LikeButton
+              liked={rental?.liked as boolean}
+              toggleLike={toggleLike}
+            />
           </div>
           <div className="flex items-center text-muted-foreground">
             <MapPin className="h-4 w-4 mr-2" />
@@ -247,7 +308,13 @@ export default function ApartmentDetail({ id }: ApartmentProps) {
       </Card>
 
       {/* Contact Landlord Dialog */}
-      <Dialog open={isContactOpen} onOpenChange={setIsContactOpen}>
+      <Dialog
+        open={isContactOpen}
+        onOpenChange={(value) => {
+          setIsContactOpen(value);
+          setContent("");
+        }}
+      >
         <DialogContent className="bg-white sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Contact Landlord</DialogTitle>
@@ -257,21 +324,24 @@ export default function ApartmentDetail({ id }: ApartmentProps) {
             </DialogDescription>
           </DialogHeader>
           <Tabs defaultValue="phone" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger
-                value="phone"
-                className="flex items-center justify-center"
-              >
-                <Phone className="w-4 h-4 mr-2" />
-                Phone
-              </TabsTrigger>
-              <TabsTrigger
-                value="chat"
-                className="flex items-center justify-center"
-              >
-                <MessageCircle className="w-4 h-4 mr-2" />
-                Chat
-              </TabsTrigger>
+            <TabsList
+              className={`grid w-full grid-cols-${
+                !rental?.phoneNumber?.length && !rental?.isChatAllowed
+                  ? 1
+                  : !rental?.phoneNumber?.length || !rental?.isChatAllowed
+                  ? 2
+                  : 3
+              }`}
+            >
+              {rental?.phoneNumber && (
+                <TabsTrigger
+                  value="phone"
+                  className="flex items-center justify-center"
+                >
+                  <Phone className="w-4 h-4 mr-2" />
+                  Phone
+                </TabsTrigger>
+              )}
               <TabsTrigger
                 value="email"
                 className="flex items-center justify-center"
@@ -279,6 +349,15 @@ export default function ApartmentDetail({ id }: ApartmentProps) {
                 <Mail className="w-4 h-4 mr-2" />
                 Email
               </TabsTrigger>
+              {rental?.isChatAllowed && (
+                <TabsTrigger
+                  value="chat"
+                  className="flex items-center justify-center"
+                >
+                  <MessageCircle className="w-4 h-4 mr-2" />
+                  Chat
+                </TabsTrigger>
+              )}
             </TabsList>
             <TabsContent value="chat">
               <Card>
@@ -301,30 +380,42 @@ export default function ApartmentDetail({ id }: ApartmentProps) {
               </Card>
             </TabsContent>
             <TabsContent value="email">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Email {rental?.landlord?.name}</CardTitle>
-                  <CardDescription>
-                    Send an email to get in touch
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center space-x-2">
-                    <Input value={rental?.userEmail} readOnly />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="emailMessage">Your Message</Label>
-                    <Textarea
-                      id="emailMessage"
-                      placeholder="Type your message here..."
-                      className="min-h-[100px]"
-                    />
-                  </div>
-                </CardContent>
-                <CardFooter>
-                  <Button className="w-full">Send Email</Button>
-                </CardFooter>
-              </Card>
+              {isSignedIn ? (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Email {rental?.landlord?.name}</CardTitle>
+                    <CardDescription>
+                      Send an email to get in touch
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center space-x-2">
+                      <Input value={rental?.userEmail} readOnly />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="emailMessage">Your Message</Label>
+                      <Textarea
+                        value={content}
+                        onChange={(e) => setContent(e.target.value)}
+                        id="emailMessage"
+                        placeholder="Type your message here..."
+                        className="min-h-[100px]"
+                      />
+                    </div>
+                  </CardContent>
+                  <CardFooter>
+                    <Button
+                      disabled={loading}
+                      onClick={handleSendEmail}
+                      className="w-full"
+                    >
+                      {loading ? "Sending..." : "Send Email"}
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ) : (
+                <LoginRequired />
+              )}
             </TabsContent>
             <TabsContent value="phone">
               <Card>
@@ -348,6 +439,12 @@ export default function ApartmentDetail({ id }: ApartmentProps) {
                         <Copy className="h-4 w-4" />
                       )}
                     </Button>
+                    <a
+                      href={`tel:${rental?.phoneNumber}`}
+                      className="flex-grow"
+                    >
+                      <Button>Call</Button>
+                    </a>
                   </div>
                 </CardContent>
               </Card>
@@ -398,17 +495,14 @@ export default function ApartmentDetail({ id }: ApartmentProps) {
         <DialogContent className="bg-white sm:max-w-[525px]">
           <DialogHeader>
             <DialogTitle>Apply for this Property</DialogTitle>
-            <DialogDescription>
-              Please fill out the form below to apply for this rental property.
-            </DialogDescription>
           </DialogHeader>
           <form>
             <Card>
               <CardHeader>
                 <CardTitle>Personal Information</CardTitle>
-                <CardDescription>
+                {/* <CardDescription>
                   Provide your contact details for the application.
-                </CardDescription>
+                </CardDescription> */}
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
@@ -438,6 +532,7 @@ export default function ApartmentDetail({ id }: ApartmentProps) {
                     name="email"
                     type="email"
                     required
+                    readOnly
                     defaultValue={user?.primaryEmailAddress?.emailAddress}
                   />
                 </div>
@@ -447,6 +542,8 @@ export default function ApartmentDetail({ id }: ApartmentProps) {
                     id="phone"
                     name="phone"
                     // type="tel"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
                     required
                     defaultValue={user?.phoneNumbers[0]?.phoneNumber}
                   />
@@ -454,22 +551,29 @@ export default function ApartmentDetail({ id }: ApartmentProps) {
                 <div className="space-y-2">
                   <Label htmlFor="message">Additional Message (Optional)</Label>
                   <Textarea
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
                     id="message"
                     name="message"
                     placeholder="Any additional information you'd like to provide..."
                   />
                 </div>
-                <div className="flex items-center space-x-2">
+                {/* <div className="flex items-center space-x-2">
                   <Checkbox id="agreeToTerms" required />
                   <Label htmlFor="agreeToTerms" className="text-sm">
                     I agree to the terms and conditions of the application
                     process
                   </Label>
-                </div>
+                </div> */}
               </CardContent>
               <CardFooter>
-                <Button type="submit" className="w-full">
-                  Submit Application
+                <Button
+                  disabled={loading}
+                  onClick={handleSubmitApplication}
+                  type="submit"
+                  className="w-full"
+                >
+                  {loading ? "Sending" : "Submit Application"}
                 </Button>
               </CardFooter>
             </Card>
