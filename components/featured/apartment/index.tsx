@@ -497,86 +497,92 @@ export default function ApartmentDetail({ id }: ApartmentProps) {
             <DialogTitle>Apply for this Property</DialogTitle>
           </DialogHeader>
           <form>
-            <Card>
-              <CardHeader>
-                <CardTitle>Personal Information</CardTitle>
-                {/* <CardDescription>
+            {isSignedIn ? (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Personal Information</CardTitle>
+                  {/* <CardDescription>
                   Provide your contact details for the application.
                 </CardDescription> */}
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="firstName">First Name</Label>
+                      <Input
+                        id="firstName"
+                        name="firstName"
+                        required
+                        defaultValue={user?.firstName as string}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="lastName">Last Name</Label>
+                      <Input
+                        id="lastName"
+                        name="lastName"
+                        required
+                        defaultValue={user?.lastName as string}
+                      />
+                    </div>
+                  </div>
                   <div className="space-y-2">
-                    <Label htmlFor="firstName">First Name</Label>
+                    <Label htmlFor="email">Email Address</Label>
                     <Input
-                      id="firstName"
-                      name="firstName"
+                      id="email"
+                      name="email"
+                      type="email"
                       required
-                      defaultValue={user?.firstName as string}
+                      readOnly
+                      defaultValue={user?.primaryEmailAddress?.emailAddress}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="lastName">Last Name</Label>
+                    <Label htmlFor="phone">Phone Number</Label>
                     <Input
-                      id="lastName"
-                      name="lastName"
+                      id="phone"
+                      name="phone"
+                      // type="tel"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
                       required
-                      defaultValue={user?.lastName as string}
+                      defaultValue={user?.phoneNumbers[0]?.phoneNumber}
                     />
                   </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email Address</Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    required
-                    readOnly
-                    defaultValue={user?.primaryEmailAddress?.emailAddress}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number</Label>
-                  <Input
-                    id="phone"
-                    name="phone"
-                    // type="tel"
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                    required
-                    defaultValue={user?.phoneNumbers[0]?.phoneNumber}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="message">Additional Message (Optional)</Label>
-                  <Textarea
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                    id="message"
-                    name="message"
-                    placeholder="Any additional information you'd like to provide..."
-                  />
-                </div>
-                {/* <div className="flex items-center space-x-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="message">
+                      Additional Message (Optional)
+                    </Label>
+                    <Textarea
+                      value={content}
+                      onChange={(e) => setContent(e.target.value)}
+                      id="message"
+                      name="message"
+                      placeholder="Any additional information you'd like to provide..."
+                    />
+                  </div>
+                  {/* <div className="flex items-center space-x-2">
                   <Checkbox id="agreeToTerms" required />
                   <Label htmlFor="agreeToTerms" className="text-sm">
                     I agree to the terms and conditions of the application
                     process
                   </Label>
                 </div> */}
-              </CardContent>
-              <CardFooter>
-                <Button
-                  disabled={loading}
-                  onClick={handleSubmitApplication}
-                  type="submit"
-                  className="w-full"
-                >
-                  {loading ? "Sending" : "Submit Application"}
-                </Button>
-              </CardFooter>
-            </Card>
+                </CardContent>
+                <CardFooter>
+                  <Button
+                    disabled={loading}
+                    onClick={handleSubmitApplication}
+                    type="submit"
+                    className="w-full"
+                  >
+                    {loading ? "Sending" : "Submit Application"}
+                  </Button>
+                </CardFooter>
+              </Card>
+            ) : (
+              <LoginRequired className="border-none shadow-none" />
+            )}
           </form>
         </DialogContent>
       </Dialog>
