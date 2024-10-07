@@ -19,12 +19,12 @@ export async function POST(request: NextRequest) {
       throw Error("Email format is invalid.");
     }
 
-    transporter.sendMail({
+    const res = await transporter.sendMail({
       to,
       subject: `There is a message for you from ${from}`,
       text: content,
     });
-
+    console.log('res ==', res)
     return NextResponse.json({ success: true });
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message });
